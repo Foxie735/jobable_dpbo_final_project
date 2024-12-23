@@ -15,11 +15,23 @@ class JobApplicationApp extends StatefulWidget {
 class _JobApplicationAppState extends State<JobApplicationApp> {
   final db = DatabaseHelper();
   List<Map<String, dynamic>> _jobs = [];
+  int _totalJobsApplied = 0;
 
   void _fetchJobs() async {
     final jobs = await db.getJobs();
+    final totalApplied =
+        await db.getTotalJobsApplied(widget.profile?.usrId ?? 0);
     setState(() {
       _jobs = jobs;
+      _totalJobsApplied = totalApplied;
+    });
+  }
+
+  void _fetchTotalJobsApplied() async {
+    final totalApplied =
+        await db.getTotalJobsApplied(widget.profile?.usrId ?? 0);
+    setState(() {
+      _totalJobsApplied = totalApplied;
     });
   }
 
@@ -27,6 +39,7 @@ class _JobApplicationAppState extends State<JobApplicationApp> {
   void initState() {
     super.initState();
     _fetchJobs();
+    _fetchTotalJobsApplied();
   }
 
   @override
@@ -86,6 +99,14 @@ class _JobApplicationAppState extends State<JobApplicationApp> {
                           ),
                         ),
                       ),
+                      const SizedBox(height: 8),
+                      Text(
+                        "Total Job Applied: $_totalJobsApplied",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                       const SizedBox(height: 16),
                       const Text(
                         "Yuk cari kerja!",
@@ -143,8 +164,7 @@ class _JobApplicationAppState extends State<JobApplicationApp> {
                             ),
                           ),
                           subtitle: Text(
-                            "Position: ${job['position']}\nLocation: ${job['location']}"
-                          ),
+                              "Position: ${job['position']}\nLocation: ${job['location']}"),
                           trailing: Text(
                             job['company'],
                             style: const TextStyle(
@@ -156,7 +176,11 @@ class _JobApplicationAppState extends State<JobApplicationApp> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) => JobDetailPage(job: job),
+                                builder: (context) => JobDetailPage(
+                                  job: job,
+                                  userId: widget.profile?.usrId ??
+                                      0, // Tambahkan argumen userId
+                                ),
                               ),
                             );
                           },

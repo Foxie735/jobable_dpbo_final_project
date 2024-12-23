@@ -20,8 +20,6 @@ class Users {
     required this.password,
   });
 
-  //These json value must be same as your column name in database that we have already defined
-  //one column didn't match
   factory Users.fromMap(Map<String, dynamic> json) => Users(
     usrId: json["usrId"],
     fullName: json["fullName"],

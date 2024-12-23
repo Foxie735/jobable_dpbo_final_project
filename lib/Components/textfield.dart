@@ -1,5 +1,3 @@
-//Our custom textfield
-
 import 'package:flutter/material.dart';
 import 'package:jobable_dpbo_final_project/Components/colors.dart';
 

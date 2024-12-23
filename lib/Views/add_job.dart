@@ -153,7 +153,7 @@ class _AddJobScreenState extends State<AddJobScreen> {
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        currentIndex: 1, // Set this to 1 since this is the "Add Job" screen
+        currentIndex: 1,
         onTap: (index) {
           if (index == 0) {
             // Navigate to homepage

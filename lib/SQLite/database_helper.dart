@@ -29,15 +29,35 @@ class DatabaseHelper {
    )
    ''';
 
+  String appliedJobs = '''
+   CREATE TABLE applied_jobs (
+     id INTEGER PRIMARY KEY AUTOINCREMENT,
+     usrId INTEGER,
+     jobId INTEGER,
+     FOREIGN KEY (usrId) REFERENCES users(usrId),
+     FOREIGN KEY (jobId) REFERENCES jobs(id)
+   )
+   ''';
+
   // Our connection is ready
   Future<Database> initDB() async {
     final databasePath = await getDatabasesPath();
     final path = join(databasePath, databaseName);
 
-    return openDatabase(path, version: 2, onCreate: (db, version) async {
-      await db.execute(user);
-      await db.execute(job);
-    });
+    return openDatabase(
+      path,
+      version: 3, // Tingkatkan versi database
+      onCreate: (db, version) async {
+        await db.execute(user);
+        await db.execute(job);
+        await db.execute(appliedJobs);
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 3) {
+          await db.execute(appliedJobs); // Tambahkan tabel baru
+        }
+      },
+    );
   }
 
   // Function methods for users
@@ -83,6 +103,38 @@ class DatabaseHelper {
   Future<List<Map<String, dynamic>>> getJobs() async {
     final Database db = await initDB();
     return db.query('jobs');
+  }
+
+  Future<bool> isJobApplied(int usrId, int jobId) async {
+    final Database db = await initDB();
+    var result = await db.query(
+      'applied_jobs',
+      where: 'usrId = ? AND jobId = ?',
+      whereArgs: [usrId, jobId],
+    );
+    return result.isNotEmpty;
+  }
+
+// Tambahkan pekerjaan yang dilamar ke tabel applied_jobs
+  Future<void> applyJob(int usrId, int jobId) async {
+    final Database db = await initDB();
+    await db.insert(
+      'applied_jobs',
+      {'usrId': usrId, 'jobId': jobId},
+      conflictAlgorithm: ConflictAlgorithm.ignore, // Hindari duplikasi
+    );
+  }
+
+// Hitung total pekerjaan yang sudah dilamar oleh user
+  Future<int> getTotalJobsApplied(int usrId) async {
+    final Database db = await initDB();
+    var result = await db.query(
+      'applied_jobs',
+      where: 'usrId = ?',
+      whereArgs: [usrId],
+    );
+    return result
+        .length; // This is the total count of applied jobs for this user
   }
 
   Future<void> clearAllTables() async {
